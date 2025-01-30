@@ -11,9 +11,11 @@ import {
   TextEditorModule,
   TextFilterModule,
   ValidationModule,
+  TooltipModule,
 } from "ag-grid-community";
 import Papa from "papaparse"; // Add papaparse for CSV parsing
 import { data } from "./data";
+import { companyLogoRender } from "./cellRenders";
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([
@@ -25,6 +27,7 @@ ModuleRegistry.registerModules([
   PaginationModule,
   ClientSideRowModelModule,
   ValidationModule /* Development Only */,
+  TooltipModule,
 ]);
 
 const GridExample = () => {
@@ -37,17 +40,45 @@ const GridExample = () => {
       {
         headerName: "Personal Details",
         children: [
-          { field: "first_name", headerName: "First Name", minWidth: 170 },
-          { field: "last_name", headerName: "Last Name" },
-          { field: "email", headerName: "Email" },
-          { field: "mobile_no", headerName: "Mobile No" },
-          { field: "job_title", headerName: "Job Title" },
+          {
+            field: "full_name",
+            headerName: "Full Name",
+            valueGetter: (p) => p.data.first_name + " " + p.data.last_name,
+            sortable: true,
+            pinned: "left", // 🔥 This keeps it frozen on the left
+            lockPinned: true, // Optional: Prevents user from unpinning
+            tooltipField: "full_name",
+          },
+          {
+            field: "email",
+            headerName: "Email",
+            pinned: "left",
+            lockPinned: true,
+          },
+          {
+            field: "mobile_no",
+            headerName: "Mobile No",
+            pinned: "left",
+            lockPinned: true,
+          },
+          {
+            field: "job_title",
+            headerName: "Job Title",
+            pinned: "left",
+            lockPinned: true,
+            tooltipValueGetter: (params) =>
+              params.value ? `Job: ${params.value}` : "No job title available", // ✅ Dynamic tooltip
+          },
         ],
       },
       {
         headerName: "Company Info",
         children: [
-          { field: "company_name", headerName: "Company Name" },
+          {
+            field: "company_name",
+            headerName: "Company Name",
+            cellRenderer: companyLogoRender,
+          },
           { field: "address", headerName: "Address" },
           { field: "city", headerName: "City" },
           { field: "state", headerName: "State" },
@@ -146,26 +177,6 @@ const GridExample = () => {
 
   return (
     <div style={{ width: "100%", height: "100%" }}>
-      <input
-        type="text"
-        placeholder="Search..."
-        value={quickFilterText}
-        onChange={onQuickFilterChange}
-        style={{ marginBottom: "10px", padding: "5px", width: "100%" }}
-      />
-      <div>
-        {/* File upload button */}
-        <input
-          type="file"
-          accept=".csv"
-          onChange={handleFileUpload}
-          style={{ marginBottom: "10px" }}
-        />
-        {/* Export to CSV button */}
-        <button onClick={exportToCSV} style={{ marginBottom: "10px" }}>
-          Export to CSV
-        </button>
-      </div>
       <div style={{ height: "100%", width: "100%" }}>
         <AgGridReact
           rowData={rowData}
